@@ -158,7 +158,7 @@ Descrição:
   # Create new Github repository
   # ============================================
 	create_new_repo(){
-		local data_json='{"name": "@repo_name@"}'
+		local data_json='{"name": "@repo_name@", "license_template": "apache-2.0"}'
 		data_json=$(echo "$data_json" | sed "s/@repo_name@/${new_project_name}/")
 
 		curl --request POST \
