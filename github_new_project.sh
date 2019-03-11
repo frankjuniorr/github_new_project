@@ -231,23 +231,6 @@ Descrição:
 	}
 
   # ============================================
-  # Request to delete unused default labels
-  # ============================================
-	delete_unused_labels(){
-
-		for item in "${labels_to_be_deleted[@]}"; do
-				# replacing aux hífen (-) to '%20', 
-				# that is character correspondent to 'space'
-		   item=$(echo "$item" | sed 's/-/%20/g')
-
-		   curl --request DELETE \
-			  --url https://api.github.com/repos/${github_user}/${new_project_name}/labels/${item} \
-			  --header "$github_auth" \
-			  --header 'Content-Type: application/json'
-		done
-	}
-
-  # ============================================
   # Deploy source codeto new repo
   # ============================================
 	deploy_source_code(){
@@ -274,9 +257,6 @@ Descrição:
 
 		_print_info "Criando o label TODO"
 		create_TODO_label
-
-		_print_info "Deletando labels não usados"
-		delete_unused_labels
 
 		_print_info "Deploy código para o repositório"
 		deploy_source_code
