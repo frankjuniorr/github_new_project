@@ -9,7 +9,6 @@ Script to create a new github repository and deploy source code.
   - Create a new Github repository
   - Create a new issue label "TODO"
   - Change color to the label "bug"
-  - Remove the rest of labels
   - Make deploy source code to new repository
 
 ## Dependencies
