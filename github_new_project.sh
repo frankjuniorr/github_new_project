@@ -8,7 +8,6 @@
 #			2. Manipula os labes na das issues
 #				2.1 Cria um label novo chamado "TODO"
 #				2.2 Altera a cor do label "bug"
-#				2.3 Deleta o resto
 #			3. Faz o deploy do código pro repostiório novo.
 #
 ################################################################################
