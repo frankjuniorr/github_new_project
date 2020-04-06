@@ -157,12 +157,16 @@ Descrição:
   # Create new Github repository
   # ============================================
 	create_new_repo(){
-		local data_json='{"name": "@repo_name@", "license_template": "apache-2.0"}'
+		local data_json='{"owner": "@repo_user@", "name": "@repo_name@", "private": false}'
+    data_json=$(echo "$data_json" | sed "s/@repo_user@/${github_user}/")
 		data_json=$(echo "$data_json" | sed "s/@repo_name@/${new_project_name}/")
 
+    local endpoint="https://api.github.com/repos/${github_user}/template-repository/generate"
+
 		curl --request POST \
-			--url https://api.github.com/user/repos \
+			--url "$endpoint" \
 			--header "$github_auth" \
+      --header "Accept: application/vnd.github.baptiste-preview+json" \
 			--data "$data_json"
 	}
 
@@ -233,11 +237,14 @@ Descrição:
   # Deploy source codeto new repo
   # ============================================
 	deploy_source_code(){
-		git init
-		git remote add origin git@github.com:${github_user}/${new_project_name}
+    local temporary_folder="/tmp/temp_repo"
+		git clone git@github.com:${github_user}/${new_project_name} "$temporary_folder"
+    cp -r ${temporary_folder}/* .
+    cp -r ${temporary_folder}/.git .
+
 		git config user.email "$github_user_email"
 		git add .
-		git commit -m "first commit"
+		git commit -m "upload code"
 		git push -u origin master
 	}
 

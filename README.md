@@ -3,10 +3,10 @@
 [![environment](https://img.shields.io/badge/linux-ubuntu-orange.svg)](https://img.shields.io/badge/linux-ubuntu-orange.svg)
 
 ## Description
-Script to create a new github repository and deploy source code.
+Script to create a new github repository from my [repository template](https://github.com/frankjuniorr/template-repository) and deploy source code.
 
 ## Features:
-  - Create a new Github repository
+  - Create a new Github repository from template
   - Create a new issue label "TODO"
   - Change color to the label "bug"
   - Make deploy source code to new repository
@@ -14,7 +14,7 @@ Script to create a new github repository and deploy source code.
 ## Dependencies
 
   - [jq](https://stedolan.github.io/jq/) - jq is a lightweight and flexible command-line JSON processor.
-  
+
  ## Config
 
 Create a file call ```config.sh``` to save your data, with content:
