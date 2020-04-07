@@ -55,10 +55,9 @@ Descrição:
  Script usado para subir um código novo pro Github
  Funcionalidades:
  1. Cria um repositório novo
- 2. Manipula os labes na das issues
+ 2. Manipula os labes das issues
   2.1 Cria um label novo chamado "TODO"
   2.2 Altera a cor do label "bug"
-  2.3 Deleta o resto
  3. Faz o deploy do código pro repostiório novo.
 
   Ex.: ./$nome_do_script
@@ -84,7 +83,7 @@ Descrição:
     local amarelo="$(tput setaf 3 2>/dev/null || echo '\e[0;33m')"
     local reset="$(tput sgr 0 2>/dev/null || echo '\e[0m')"
 
-    printf "${amarelo}$1${reset}\n"
+    printf "${amarelo}[LOG]: $1${reset}\n"
   }
 
   # ============================================
@@ -171,31 +170,6 @@ Descrição:
 	}
 
   # ============================================
-  # Request to list all labes
-  # ============================================
-	list_all_labes(){
-		local response_json=$(curl --silent --request GET \
-	  --url https://api.github.com/repos/${github_user}/${new_project_name}/labels \
-	  --header "$github_auth")
-
-
-		labels_to_be_deleted=()
-		local label=not_null
-		local index=0
-		while [ "$label" != "null" ]
-		do
-		  label=$(echo "$response_json" | jq --raw-output ".[$index].name")
-		  # Only add in array the labels that differentto 'null', 'bug' and 'wontfix'
-		  if [[ $label != "null" && $label != "bug" && $label != "wontfix" ]];then
-		  	# add a temp hífen (-) to aux to separate array itens
-		  	label=${label// /-}
-		  	labels_to_be_deleted+=($label)
-		  fi
-		  index=$((index+1))
-		done
-	}
-
-  # ============================================
   # Request to update label "Bug"
   # ============================================
 	update_bug_label(){
@@ -238,11 +212,20 @@ Descrição:
   # ============================================
 	deploy_source_code(){
     local temporary_folder="/tmp/temp_repo"
+    _print_info "Clonando template"
 		git clone git@github.com:${github_user}/${new_project_name} "$temporary_folder"
-    cp -r ${temporary_folder}/* .
-    cp -r ${temporary_folder}/.git .
 
+    _print_info "Copiando arquivos"
+    cp -r ${temporary_folder}/* .
+
+    _print_info "Copiando arquivos ocultos"
+    cp -r ${temporary_folder}/.[^.]* .
+    rm -rf "$temporary_folder"
+
+    _print_info "Configurando o git"
 		git config user.email "$github_user_email"
+
+    _print_info "Subindo o código"
 		git add .
 		git commit -m "upload code"
 		git push -u origin master
@@ -255,16 +238,12 @@ Descrição:
 		_print_info "Criando novo repositório"
   	create_new_repo
 
-  	_print_info "Listando labels existentes"
-    list_all_labes
-
     _print_info "Atualizando o label BUG"
 		update_bug_label
 
 		_print_info "Criando o label TODO"
 		create_TODO_label
 
-		_print_info "Deploy código para o repositório"
 		deploy_source_code
   }
 
