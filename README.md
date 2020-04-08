@@ -17,7 +17,6 @@ Create a file call ```config.sh``` to save your data, with content:
 # token created in github Settings > Developer Settings > Personal Access Token
 github_token='<YOUR_TOKEN>'
 github_user='<YOUR_GITHUB_USER>'
-github_user_email='<YOUR_EMAIL>'
 ```
 
 ## Tip
