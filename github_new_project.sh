@@ -5,20 +5,12 @@
 #   Script usado para subir um código novo pro Github
 #		Funcionalidades:
 #			1. Cria um repositório novo
-#			2. Manipula os labes na das issues
-#				2.1 Cria um label novo chamado "TODO"
-#				2.2 Altera a cor do label "bug"
 #			3. Faz o deploy do código pro repostiório novo.
 #
 ################################################################################
 # Uso:
 #    ./github_new_project.sh
 #
-################################################################################
-# Dependencias:
-# 1. jq [https://stedolan.github.io/jq/]
-#				description: jq is a lightweight and flexible command-line JSON processor.
-# 			instalação: 'sudo apt-get install jq'
 ################################################################################
 # Autor: Frank Junior <frankcbjunior@gmail.com>
 # Desde: 23-01-2019
@@ -39,12 +31,6 @@
 	# new project name is the current directory
 	new_project_name=$(basename $(pwd))
 
-	# load file with config parameters
-	test -e "$(dirname $0)/config.sh" && . $_
-
-	# github authorization request
-	github_auth="Authorization: token $github_token"
-
   # mensagem de help
   nome_do_script=$(basename "$0")
 
@@ -54,11 +40,8 @@
 Descrição:
  Script usado para subir um código novo pro Github
  Funcionalidades:
- 1. Cria um repositório novo
- 2. Manipula os labes das issues
-  2.1 Cria um label novo chamado "TODO"
-  2.2 Altera a cor do label "bug"
- 3. Faz o deploy do código pro repostiório novo.
+ 1. Cria um repositório novo a partir do template
+ 2. Faz o deploy do código pro repostiório novo.
 
   Ex.: ./$nome_do_script
   "
@@ -87,26 +70,6 @@ Descrição:
   }
 
   # ============================================
-  # Função pra imprimir mensagem de sucesso
-  # ============================================
-  _print_success(){
-    local verde="$(tput setaf 2 2>/dev/null || echo '\e[0;32m')"
-    local reset="$(tput sgr 0 2>/dev/null || echo '\e[0m')"
-
-    printf "${verde}$1${reset}\n"
-  }
-
-  # ============================================
-  # Função pra imprimir erros
-  # ============================================
-  _print_error(){
-    local vermelho="$(tput setaf 1 2>/dev/null || echo '\e[0;31m')"
-    local reset="$(tput sgr 0 2>/dev/null || echo '\e[0m')"
-
-    printf "${vermelho}[ERROR] $1${reset}\n"
-  }
-
-  # ============================================
   # Função de debug
   # ============================================
   _debug_log(){
@@ -122,22 +85,6 @@ Descrição:
     return "$ERRO"
   }
 
-  # ============================================
-  # Verificar se um pacote está instalado
-  # $1 --> nome do pacote que deseja verificar
-  # $2 --> mensagem de erro customizada (OPCIONAL)
-  # ============================================
-  _die(){
-    local package=$1
-    local custom_msg=$2
-
-    if ! type $package > /dev/null 2>&1; then
-      _print_error "$package is not installed"
-      test ! -z "$custom_msg" && _print_error "$custom_msg"
-      exit $ERRO
-    fi
-  }
-
 ################################################################################
 # Validações - regras de negocio até parametros
 
@@ -145,8 +92,14 @@ Descrição:
   # tratamento de validacoes
   # ============================================
   validacoes(){
-  	_die "jq"
-    return "$SUCESSO"
+    # load file with config parameters
+    if [ -e "$(dirname $0)/config.sh" ];then
+      source "$(dirname $0)/config.sh"
+    else
+      echo "create a config file (config.sh) fisrt"
+      echo "read the README"
+      exit "$ERRO"
+    fi
   }
 
 ################################################################################
@@ -156,6 +109,9 @@ Descrição:
   # Create new Github repository
   # ============================================
 	create_new_repo(){
+    # github authorization request
+  	local github_auth="Authorization: token $github_token"
+
 		local data_json='{"owner": "@repo_user@", "name": "@repo_name@", "private": false}'
     data_json=$(echo "$data_json" | sed "s/@repo_user@/${github_user}/")
 		data_json=$(echo "$data_json" | sed "s/@repo_name@/${new_project_name}/")
@@ -167,44 +123,6 @@ Descrição:
 			--header "$github_auth" \
       --header "Accept: application/vnd.github.baptiste-preview+json" \
 			--data "$data_json"
-	}
-
-  # ============================================
-  # Request to update label "Bug"
-  # ============================================
-	update_bug_label(){
-		# color 'D32F2F' is Material Design Red 700
-		local json_body='
-	{
-	  "name": "bug",
-	  "description": "Bug fix required",
-	  "color": "D32F2F"
-	}'
-
-		curl --request PATCH \
-	  --url https://api.github.com/repos/${github_user}/${new_project_name}/labels/bug \
-	  --header "$github_auth" \
-	  --header 'Content-Type: application/json' \
-	  --data "$json_body"
-	}
-
-  # ============================================
-  # Request to create 'TODO' label
-  # ============================================
-	create_TODO_label(){
-		# color '1976D2' is Material Design Blue 700
-			local json_body='
-	{
-	  "name": "TODO",
-	  "description": "new implementations",
-	  "color": "1976D2"
-	}'
-
-		curl --request POST \
-	  --url https://api.github.com/repos/${github_user}/${new_project_name}/labels \
-	  --header "$github_auth" \
-	  --header 'Content-Type: application/json' \
-	  --data "$json_body"
 	}
 
   # ============================================
@@ -222,9 +140,6 @@ Descrição:
     cp -r ${temporary_folder}/.[^.]* .
     rm -rf "$temporary_folder"
 
-    _print_info "Configurando o git"
-		git config user.email "$github_user_email"
-
     _print_info "Subindo o código"
 		git add .
 		git commit -m "upload code"
@@ -237,13 +152,6 @@ Descrição:
   main(){
 		_print_info "Criando novo repositório"
   	create_new_repo
-
-    _print_info "Atualizando o label BUG"
-		update_bug_label
-
-		_print_info "Criando o label TODO"
-		create_TODO_label
-
 		deploy_source_code
   }
 

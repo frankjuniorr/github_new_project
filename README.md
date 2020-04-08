@@ -7,13 +7,7 @@ Script to create a new github repository from my [repository template](https://g
 
 ## Features:
   - Create a new Github repository from template
-  - Create a new issue label "TODO"
-  - Change color to the label "bug"
   - Make deploy source code to new repository
-
-## Dependencies
-
-  - [jq](https://stedolan.github.io/jq/) - jq is a lightweight and flexible command-line JSON processor.
 
  ## Config
 
@@ -34,3 +28,11 @@ alias github_new_project="bash <YOUR_PATH>/github_new_project/github_new_project
 ```
 
 So, with this, is just call alias inside to the new root folder that you wish create in github
+
+----
+
+  ### License:
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png" /></a>
+
+
+[Creative Commons 4.0](LICENSE) © <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Attribution-NonCommercial-ShareAlike 4.0 International</a>
