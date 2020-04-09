@@ -141,6 +141,7 @@ Descrição:
     rm -rf "$temporary_folder"
 
     _print_info "Subindo o código"
+    git config user.email "$github_user_email";
 		git add .
 		git commit -m "upload code"
 		git push -u origin master
