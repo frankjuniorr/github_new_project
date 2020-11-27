@@ -92,13 +92,26 @@ Descrição:
   # tratamento de validacoes
   # ============================================
   validacoes(){
-    # load file with config parameters
-    if [ -e "$(dirname $0)/config.sh" ];then
-      source "$(dirname $0)/config.sh"
-    else
-      echo "create a config file (config.sh) fisrt"
-      echo "read the README"
-      exit "$ERRO"
+    # se não existir uma das duas, já exiba a mensagem de erro
+    if [ -z $TF_VAR_github_owner ] || [ -z $TF_VAR_github_token ];then
+      echo "Fisrt, set the necessary env vars:"
+      echo 'export TF_VAR_github_token=<GITHUB_TOKEN_HERE>'
+      echo 'export TF_VAR_github_owner=<YOUR_GITHUB_USER_HERE>'
+      exit 1
+    fi
+
+    # se as 2 variáveis existem, aí sim, sete as variáveis necessárias
+    if [ -n $TF_VAR_github_owner ] && [ -n $TF_VAR_github_token ];then
+      github_user=$(env | grep "TF_VAR_github_owner" | cut -d "=" -f2)
+    fi
+
+    # installing Terraform depenency
+    if ! type terraform > /dev/null 2>&1; then
+      echo "terraform não está instalado. Instalando pra você..."
+      terraform_zip_file="terraform_0.13.5_linux_amd64.zip"
+      wget -P "https://releases.hashicorp.com/terraform/0.13.5/${terraform_zip_file}" "${HOME}/bin"
+      unzip "${HOME}/bin/${terraform_zip_file}" -d "${HOME}/bin"
+      rm -rf "${HOME}/bin/${terraform_zip_file}"
     fi
   }
 
@@ -109,20 +122,19 @@ Descrição:
   # Create new Github repository
   # ============================================
 	create_new_repo(){
-    # github authorization request
-  	local github_auth="Authorization: token $github_token"
+    cd "$(dirname $0)/infra"
+    terraform apply -auto-approve -var "project_name=${new_project_name}"
+    output=$(terraform output)
 
-		local data_json='{"owner": "@repo_user@", "name": "@repo_name@", "private": false}'
-    data_json=$(echo "$data_json" | sed "s/@repo_user@/${github_user}/")
-		data_json=$(echo "$data_json" | sed "s/@repo_name@/${new_project_name}/")
+    # setando as variáveis que vem do output
+    github_user_email=$(echo "$output" | grep "github_user_email_output" | cut -d "=" -f2 | xargs)
+    github_user_name=$(echo "$output" | grep "github_user_name_output" | cut -d "=" -f2 | xargs)
 
-    local endpoint="https://api.github.com/repos/${github_user}/template-repository/generate"
+    echo "DEBUG:"
+    echo "$github_user_email"
+    echo "$github_user_name"
 
-		curl --request POST \
-			--url "$endpoint" \
-			--header "$github_auth" \
-      --header "Accept: application/vnd.github.baptiste-preview+json" \
-			--data "$data_json"
+    cd - > /dev/null
 	}
 
   # ============================================
@@ -142,6 +154,7 @@ Descrição:
 
     _print_info "Subindo o código"
     git config user.email "$github_user_email";
+    git config user.name "$github_user_name";
 		git add .
 		git commit -m "upload code"
 		git push -u origin master
